@@ -5,19 +5,37 @@ import { DeleteQuestionUseCase } from './delete-question'
 import { makeQuestion } from 'test/factories/make-question'
 import { NotAllowedError } from './errors/not-allowed-error'
 import { ResouceNotFoundError } from './errors/resource-not-found-error'
+import { InMemoryQuestionAttachmentRepository } from 'test/in-memory-repository/in-memory-question-attachment-repository'
+import { makeQuestionAttachment } from 'test/factories/make-question-attachment'
 
 let sut: DeleteQuestionUseCase
 let inMemoryQuestionRepository: InMemoryQuestionRepository
+let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentRepository
 
 describe('Delete a question use case', () => {
   beforeEach(() => {
-    inMemoryQuestionRepository = new InMemoryQuestionRepository()
+    inMemoryQuestionAttachmentsRepository =
+      new InMemoryQuestionAttachmentRepository()
+    inMemoryQuestionRepository = new InMemoryQuestionRepository(
+      inMemoryQuestionAttachmentsRepository,
+    )
     sut = new DeleteQuestionUseCase(inMemoryQuestionRepository)
   })
 
   it('should be able to delete a question', async () => {
     const newQuestion = makeQuestion()
     await inMemoryQuestionRepository.create(newQuestion)
+    inMemoryQuestionAttachmentsRepository.items.push(
+      makeQuestionAttachment({
+        attachmentId: new UniqueEntityId('1'),
+        questionId: newQuestion.id,
+      }),
+      makeQuestionAttachment({
+        attachmentId: new UniqueEntityId('2'),
+        questionId: newQuestion.id,
+      }),
+    )
+
     const { isRight, value } = await sut.execute({
       authorId: newQuestion.authorId,
       questionId: newQuestion.id,
@@ -25,6 +43,7 @@ describe('Delete a question use case', () => {
 
     expect(isRight()).toBeTruthy()
     expect(value).toEqual({})
+    expect(inMemoryQuestionAttachmentsRepository.items).toHaveLength(0)
   })
 
   it('should not be able to delete a non existing question', async () => {

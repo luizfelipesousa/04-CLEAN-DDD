@@ -1,10 +1,15 @@
 import { UniqueEntityId } from '@/core/entities/unique-entitiy-id'
 import { PaginationParams } from '@/core/repositories/pagination-params'
+import { QuestionAttachmentsRepository } from '@/domain/forum/application/repositories/question-attachments-repository'
 import { QuestionRepository } from '@/domain/forum/application/repositories/question-repository'
 import { Question } from '@/domain/forum/enterprise/entities/question'
 
 export class InMemoryQuestionRepository implements QuestionRepository {
   items: Question[] = []
+
+  constructor(
+    private questionAttachmentRepository: QuestionAttachmentsRepository,
+  ) {}
 
   async findById(questionId: UniqueEntityId) {
     const question = this.items.find(
@@ -42,6 +47,7 @@ export class InMemoryQuestionRepository implements QuestionRepository {
 
   async delete(question: Question) {
     const questionIndex = this.items.findIndex((q) => q.id === question.id)
+    this.questionAttachmentRepository.deleteManyByQuestionId(question.id)
     this.items.splice(questionIndex, 1)
   }
 

@@ -9,12 +9,15 @@ export function makeAnswerComments(
   override: Partial<AnswerCommentsProps> = {},
   id?: UniqueEntityId,
 ): AnswerComments {
-  const answerComment = AnswerComments.create({
-    content: faker.lorem.text(),
-    authorId: new UniqueEntityId(),
-    answerId: new UniqueEntityId(),
-    ...override,
-  })
+  const answerComment = AnswerComments.create(
+    {
+      content: faker.lorem.text(),
+      authorId: new UniqueEntityId(),
+      answerId: new UniqueEntityId(),
+      ...override,
+    },
+    id,
+  )
 
   return answerComment
 }

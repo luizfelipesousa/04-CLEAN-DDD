@@ -9,12 +9,15 @@ export function makeQuestionComments(
   override: Partial<QuestionCommentsProps> = {},
   id?: UniqueEntityId,
 ): QuestionComments {
-  const questionComment = QuestionComments.create({
-    content: faker.lorem.text(),
-    authorId: new UniqueEntityId(),
-    questionId: new UniqueEntityId(),
-    ...override,
-  })
+  const questionComment = QuestionComments.create(
+    {
+      content: faker.lorem.text(),
+      authorId: new UniqueEntityId(),
+      questionId: new UniqueEntityId(),
+      ...override,
+    },
+    id,
+  )
 
   return questionComment
 }

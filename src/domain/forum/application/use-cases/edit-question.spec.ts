@@ -5,29 +5,67 @@ import { EditQuestionUseCase } from './edit-question'
 import { makeQuestion } from 'test/factories/make-question'
 import { NotAllowedError } from './errors/not-allowed-error'
 import { ResouceNotFoundError } from './errors/resource-not-found-error'
+import { InMemoryQuestionAttachmentRepository } from 'test/in-memory-repository/in-memory-question-attachment-repository'
+import { makeQuestionAttachment } from 'test/factories/make-question-attachment'
+import { Question } from '../../enterprise/entities/question'
 
 let sut: EditQuestionUseCase
 let inMemoryQuestionRepository: InMemoryQuestionRepository
+let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentRepository
 
 describe('Edit a question use case', () => {
   beforeEach(() => {
-    inMemoryQuestionRepository = new InMemoryQuestionRepository()
-    sut = new EditQuestionUseCase(inMemoryQuestionRepository)
+    inMemoryQuestionRepository = new InMemoryQuestionRepository(
+      inMemoryQuestionAttachmentsRepository,
+    )
+    inMemoryQuestionAttachmentsRepository =
+      new InMemoryQuestionAttachmentRepository()
+    sut = new EditQuestionUseCase(
+      inMemoryQuestionRepository,
+      inMemoryQuestionAttachmentsRepository,
+    )
   })
 
   it('should be able to edit a question', async () => {
     const newQuestion = makeQuestion()
     await inMemoryQuestionRepository.create(newQuestion)
+    inMemoryQuestionAttachmentsRepository.items.push(
+      makeQuestionAttachment({
+        attachmentId: new UniqueEntityId('1'),
+        questionId: newQuestion.id,
+      }),
+      makeQuestionAttachment({
+        attachmentId: new UniqueEntityId('2'),
+        questionId: newQuestion.id,
+      }),
+    )
+
     const { value } = await sut.execute({
       authorId: newQuestion.authorId,
       questionId: newQuestion.id,
       content: 'new content',
       title: 'new title',
+      attachmentIds: ['1', '3'],
     })
 
     expect(value).toEqual(
       expect.objectContaining({ title: 'new title', content: 'new content' }),
     )
+
+    if (value instanceof Question) {
+      expect(value.attachments.currentItems).toEqual([
+        expect.objectContaining({
+          props: expect.objectContaining({
+            attachmentId: new UniqueEntityId('1'),
+          }),
+        }),
+        expect.objectContaining({
+          props: expect.objectContaining({
+            attachmentId: new UniqueEntityId('3'),
+          }),
+        }),
+      ])
+    }
   })
 
   it('should not be able to edit a non existing question', async () => {
@@ -36,6 +74,7 @@ describe('Edit a question use case', () => {
       questionId: new UniqueEntityId('question-1'),
       content: 'new content',
       title: 'new title',
+      attachmentIds: [],
     })
 
     expect(isLeft()).toBeTruthy()
@@ -53,6 +92,7 @@ describe('Edit a question use case', () => {
       questionId: newQuestion.id,
       content: 'new content',
       title: 'new title',
+      attachmentIds: [],
     })
 
     expect(isLeft()).toBeTruthy()
