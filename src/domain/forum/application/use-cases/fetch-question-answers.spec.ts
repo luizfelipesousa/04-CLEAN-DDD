@@ -3,14 +3,20 @@ import { InMemoryAnswerRepository } from 'test/in-memory-repository/in-memory-an
 import { makeAnswer } from 'test/factories/make-answer'
 import { FetchQuestionAnswersUseCase } from './fetch-question-answers'
 import { UniqueEntityId } from '@/core/entities/unique-entitiy-id'
+import { InMemoryAnswerAttachmentRepository } from 'test/in-memory-repository/in-memory-answer-attachment-repository'
 
 let inMemoryAnswerRepository: InMemoryAnswerRepository
+let inMemoryAnswerAttachmentsRepository: InMemoryAnswerAttachmentRepository
 let sut: FetchQuestionAnswersUseCase
 
 describe('Fetch  recent answer use case', () => {
   beforeEach(async () => {
     vi.useFakeTimers()
-    inMemoryAnswerRepository = new InMemoryAnswerRepository()
+    inMemoryAnswerAttachmentsRepository =
+      new InMemoryAnswerAttachmentRepository()
+    inMemoryAnswerRepository = new InMemoryAnswerRepository(
+      inMemoryAnswerAttachmentsRepository,
+    )
     sut = new FetchQuestionAnswersUseCase(inMemoryAnswerRepository)
 
     for (let i = 1; i <= 25; i++) {
