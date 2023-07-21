@@ -1,8 +1,8 @@
 import { UniqueEntityId } from '@/core/entities/unique-entitiy-id'
 import { QuestionCommentsRepository } from '../repositories/question-comments-repository'
 import { Either, left, right } from '@/core/either'
-import { ResouceNotFoundError } from './errors/resource-not-found-error'
-import { NotAllowedError } from './errors/not-allowed-error'
+import { ResouceNotFoundError } from '@/core/error/resource-not-found-error'
+import { NotAllowedError } from '@/core/error/not-allowed-error'
 
 interface DeleteQuestionCommentsUseCaseRequest {
   authorId: UniqueEntityId
